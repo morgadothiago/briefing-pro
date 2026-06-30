@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: briefing-pro
+    runtime: node
+    rootDir: apps/backend
+    buildCommand: npm install && npx nest build
+    startCommand: node dist/src/main.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
