@@ -8,6 +8,7 @@ import {
   Kanban,
   Settings,
   LogOut,
+  Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
@@ -16,6 +17,7 @@ const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Pipeline", href: "/dashboard/pipeline", icon: Kanban },
   { label: "Leads", href: "/dashboard/leads", icon: Users },
+  { label: "Buscar Leads", href: "/dashboard/buscar-leads", icon: Search },
   { label: "Configurações", href: "/dashboard/settings", icon: Settings },
 ];
 
