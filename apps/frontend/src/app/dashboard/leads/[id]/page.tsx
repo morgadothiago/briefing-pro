@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/dashboard/status-badge";
+import { BriefingViewer } from "@/components/dashboard/briefing-viewer";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import api from "@/lib/api";
 import type { Lead, Briefing, LeadNote } from "@/types";
@@ -91,6 +92,20 @@ export default function LeadDetailPage({ params }: PageProps) {
     toast.success("Link copiado!");
   }
 
+  async function downloadPdf() {
+    try {
+      const res = await api.get(`/api/leads/${id}/pdf`, { responseType: "blob" });
+      const url = URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `briefing-${lead?.projectName ?? id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error("Erro ao gerar PDF");
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -106,8 +121,6 @@ export default function LeadDetailPage({ params }: PageProps) {
       <div className="text-gray-400 text-sm">Lead não encontrado.</div>
     );
   }
-
-  const briefingData = briefing?.data ?? {};
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -144,7 +157,11 @@ export default function LeadDetailPage({ params }: PageProps) {
               <Link2 size={14} />
               Copiar link
             </button>
-            <button className="inline-flex items-center gap-2 border border-[#1F2937] text-gray-300 px-3 py-2 rounded-lg text-xs hover:bg-[#1F2937] transition-colors">
+            <button
+              onClick={downloadPdf}
+              disabled={!briefing}
+              className="inline-flex items-center gap-2 border border-[#1F2937] text-gray-300 px-3 py-2 rounded-lg text-xs hover:bg-[#1F2937] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
               <Download size={14} />
               Exportar PDF
             </button>
@@ -246,48 +263,18 @@ export default function LeadDetailPage({ params }: PageProps) {
 
         {/* Briefing */}
         <TabsContent value="briefing" className="mt-4">
-          <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-6 space-y-4">
+          <div className="bg-[#111827] border border-[#1F2937] rounded-xl p-6">
             {!briefing ? (
-              <p className="text-gray-400 text-sm">
-                Briefing não preenchido ainda.
-              </p>
+              <div className="text-center py-8">
+                <p className="text-gray-400 text-sm mb-1">Briefing não preenchido ainda.</p>
+                {lead.briefingToken && (
+                  <button onClick={copyBriefingLink} className="text-xs text-[#3B82F6] hover:underline">
+                    Copiar link para enviar ao cliente
+                  </button>
+                )}
+              </div>
             ) : (
-              (() => {
-                const STEP_LABELS: Record<string, string> = {
-                  step1: "Dados da Empresa",
-                  step2: "Objetivos do Projeto",
-                  step3: "Tipo de Projeto",
-                  step4: "Funcionalidades",
-                  step5: "Requisitos Funcionais",
-                  step6: "Requisitos Não Funcionais",
-                  step7: "Integrações",
-                  step8: "Referências Visuais",
-                  step9: "Cronograma",
-                  step10: "Orçamento",
-                  step11: "Observações Finais",
-                  step12: "Confirmação",
-                };
-                const entries = Object.entries(briefingData).filter(
-                  ([, val]) => val !== undefined && val !== null
-                );
-                if (entries.length === 0) {
-                  return (
-                    <p className="text-gray-400 text-sm">
-                      Briefing iniciado mas sem dados salvos ainda.
-                    </p>
-                  );
-                }
-                return entries.map(([key, val]) => (
-                  <div key={key} className="border-b border-[#1F2937] pb-4 last:border-0">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
-                      {STEP_LABELS[key] ?? key.replace("step", "Etapa ")}
-                    </p>
-                    <pre className="text-sm text-gray-300 whitespace-pre-wrap font-sans">
-                      {JSON.stringify(val, null, 2)}
-                    </pre>
-                  </div>
-                ));
-              })()
+              <BriefingViewer data={briefing.data} />
             )}
           </div>
         </TabsContent>
