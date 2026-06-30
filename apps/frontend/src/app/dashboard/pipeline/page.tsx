@@ -43,7 +43,7 @@ export default function PipelinePage() {
       const res = await api.get<PaginatedResponse<Lead>>("/api/leads", {
         params: { limit: 200 },
       });
-      return res.data.data;
+      return res.data.data ?? [];
     },
     refetchInterval: 30_000,
   });

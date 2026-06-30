@@ -24,10 +24,13 @@ import Link from "next/link";
 const schema = z.object({
   clientName: z.string().min(2, "Nome obrigatório"),
   projectName: z.string().min(2, "Nome do projeto obrigatório"),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
-  phone: z.string().optional(),
+  clientEmail: z.string().email("Email inválido").optional().or(z.literal("")),
+  clientPhone: z.string().optional(),
   projectType: z.string().optional(),
-  estimatedValue: z.number().optional(),
+  estimatedValue: z.preprocess(
+    (v) => (v === "" || v === undefined || Number.isNaN(v) ? undefined : Number(v)),
+    z.number().min(0).optional()
+  ),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -60,7 +63,12 @@ export default function LeadsPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (dto: FormData) => api.post<Lead>("/api/leads", dto),
+    mutationFn: (dto: FormData) => {
+      const payload = Object.fromEntries(
+        Object.entries(dto).filter(([, v]) => v !== "" && v !== undefined)
+      );
+      return api.post<Lead>("/api/leads", payload);
+    },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
       setCreatedLead({
@@ -330,7 +338,7 @@ export default function LeadsPage() {
                     Email
                   </label>
                   <input
-                    {...register("email")}
+                    {...register("clientEmail")}
                     type="email"
                     placeholder="cliente@email.com"
                     className={inputCls}
@@ -341,7 +349,7 @@ export default function LeadsPage() {
                     Telefone
                   </label>
                   <input
-                    {...register("phone")}
+                    {...register("clientPhone")}
                     placeholder="(11) 99999-9999"
                     className={inputCls}
                   />
@@ -364,7 +372,7 @@ export default function LeadsPage() {
                     Valor Estimado (R$)
                   </label>
                   <input
-                    {...register("estimatedValue", { valueAsNumber: true })}
+                    {...register("estimatedValue")}
                     type="number"
                     placeholder="0"
                     className={inputCls}

@@ -35,7 +35,25 @@ export class BriefingService {
       .from(briefingResponses)
       .where(eq(briefingResponses.leadId, lead.id))
 
+    const data = responses
+      ? {
+          step1: responses.step1 ?? undefined,
+          step2: responses.step2 ?? undefined,
+          step3: responses.step3 ?? undefined,
+          step4: responses.step4 ?? undefined,
+          step5: responses.step5 ?? undefined,
+          step6: responses.step6 ?? undefined,
+          step7: responses.step7 ?? undefined,
+          step8: responses.step8 ?? undefined,
+          step9: responses.step9 ?? undefined,
+          step10: responses.step10 ?? undefined,
+          step11: responses.step11 ?? undefined,
+          step12: responses.step12 ?? undefined,
+        }
+      : {}
+
     return {
+      token: lead.briefingToken,
       lead: {
         id: lead.id,
         clientName: lead.clientName,
@@ -43,9 +61,10 @@ export class BriefingService {
         projectType: lead.projectType,
         pipelineStatus: lead.pipelineStatus,
       },
-      responses: responses ?? null,
+      data,
       currentStep: responses?.currentStep ?? 0,
-      completedSteps: responses?.completedSteps ?? [],
+      completedSteps: (responses?.completedSteps as number[]) ?? [],
+      submittedAt: responses?.submittedAt ?? null,
     }
   }
 
@@ -102,7 +121,7 @@ export class BriefingService {
     return { saved_at: now }
   }
 
-  async submit(token: string, signature: { type: string; value: string }) {
+  async submit(token: string, signature?: { type: string; value: string }) {
     const lead = await this.getLead(token)
 
     const [existing] = await this.db
@@ -117,7 +136,7 @@ export class BriefingService {
     await this.db
       .update(briefingResponses)
       .set({
-        signature: { ...signature, timestamp: now.toISOString() },
+        ...(signature ? { signature: { ...signature, timestamp: now.toISOString() } } : {}),
         submittedAt: now,
       })
       .where(eq(briefingResponses.leadId, lead.id))

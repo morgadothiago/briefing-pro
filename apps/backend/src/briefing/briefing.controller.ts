@@ -23,8 +23,8 @@ export class BriefingController {
   @Post(':token/submit')
   submit(
     @Param('token') token: string,
-    @Body() body: { signature: { type: string; value: string } },
+    @Body() body: { signature?: { type: string; value: string } },
   ) {
-    return this.briefingService.submit(token, body.signature)
+    return this.briefingService.submit(token, body?.signature)
   }
 }
