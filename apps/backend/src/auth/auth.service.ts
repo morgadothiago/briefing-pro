@@ -76,11 +76,27 @@ export class AuthService {
         email: users.email,
         name: users.name,
         logoUrl: users.logoUrl,
+        whatsappNumber: users.whatsappNumber,
         createdAt: users.createdAt,
       })
       .from(users)
       .where(eq(users.id, userId))
     if (!user) throw new UnauthorizedException()
     return user
+  }
+
+  async updateProfile(userId: string, dto: { name?: string; logoUrl?: string; whatsappNumber?: string }) {
+    const [updated] = await this.db
+      .update(users)
+      .set({ ...dto, updatedAt: new Date() })
+      .where(eq(users.id, userId))
+      .returning({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        logoUrl: users.logoUrl,
+        whatsappNumber: users.whatsappNumber,
+      })
+    return updated
   }
 }

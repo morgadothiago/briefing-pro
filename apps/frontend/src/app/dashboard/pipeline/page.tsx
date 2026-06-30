@@ -18,15 +18,15 @@ import api from "@/lib/api";
 import type { Lead, PaginatedResponse } from "@/types";
 
 const COLUMNS = [
-  { id: "col-0", title: "Novo Lead", index: 0 },
-  { id: "col-1", title: "Formulário", index: 1 },
-  { id: "col-2", title: "Análise", index: 2 },
-  { id: "col-3", title: "Reunião", index: 3 },
-  { id: "col-4", title: "Escopo", index: 4 },
-  { id: "col-5", title: "Proposta", index: 5 },
-  { id: "col-6", title: "Contrato", index: 6 },
-  { id: "col-7", title: "Pagamento", index: 7 },
-  { id: "col-8", title: "Em Andamento", index: 8 },
+  { id: "col-0", title: "Novo Lead", index: 0, status: "LEAD" },
+  { id: "col-1", title: "Formulário", index: 1, status: "FORMULARIO_ENVIADO" },
+  { id: "col-2", title: "Análise", index: 2, status: "EM_ANALISE" },
+  { id: "col-3", title: "Reunião", index: 3, status: "REUNIAO_AGENDADA" },
+  { id: "col-4", title: "Escopo", index: 4, status: "ESCOPO_GERADO" },
+  { id: "col-5", title: "Proposta", index: 5, status: "PROPOSTA_ENVIADA" },
+  { id: "col-6", title: "Contrato", index: 6, status: "CONTRATO_ENVIADO" },
+  { id: "col-7", title: "Pagamento", index: 7, status: "AGUARDANDO_PAGAMENTO" },
+  { id: "col-8", title: "Em Andamento", index: 8, status: "PROJETO_INICIADO" },
 ];
 
 export default function PipelinePage() {
@@ -65,7 +65,6 @@ export default function PipelinePage() {
     const leadId = active.id as string;
     const overId = over.id as string;
 
-    // Find the target column
     const targetCol = COLUMNS.find(
       (c) => c.id === overId || leads.find((l) => l.id === overId && l.kanbanColumn === c.index)
     );
@@ -77,14 +76,17 @@ export default function PipelinePage() {
     // Optimistic update
     queryClient.setQueryData(["leads", "pipeline"], (old: Lead[] | undefined) =>
       old?.map((l) =>
-        l.id === leadId ? { ...l, kanbanColumn: targetCol.index } : l
+        l.id === leadId
+          ? { ...l, kanbanColumn: targetCol.index, status: targetCol.status as Lead["status"] }
+          : l
       )
     );
 
     try {
-      await api.patch(`/api/leads/${leadId}/kanban`, {
-        column: targetCol.index,
-      });
+      await Promise.all([
+        api.patch(`/api/leads/${leadId}/kanban`, { column: targetCol.index }),
+        api.patch(`/api/leads/${leadId}/status`, { status: targetCol.status }),
+      ]);
     } catch {
       queryClient.invalidateQueries({ queryKey: ["leads", "pipeline"] });
     }

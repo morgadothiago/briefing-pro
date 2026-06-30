@@ -21,6 +21,7 @@ export const users = pgTable('users', {
   password: varchar('password', { length: 255 }).notNull(),
   name: varchar('name', { length: 255 }),
   logoUrl: varchar('logo_url', { length: 500 }),
+  whatsappNumber: varchar('whatsapp_number', { length: 50 }),
   refreshToken: varchar('refresh_token', { length: 500 }),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),

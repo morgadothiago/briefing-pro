@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common'
+import { Controller, Post, Patch, Body, Get, UseGuards, Request } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { LoginDto, RefreshDto } from './dto/login.dto'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
@@ -31,5 +31,14 @@ export class AuthController {
   @Get('me')
   me(@Request() req: AuthRequest) {
     return this.authService.me(req.user.userId)
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('profile')
+  updateProfile(
+    @Request() req: AuthRequest,
+    @Body() body: { name?: string; logoUrl?: string; whatsappNumber?: string },
+  ) {
+    return this.authService.updateProfile(req.user.userId, body)
   }
 }
