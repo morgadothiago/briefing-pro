@@ -165,7 +165,7 @@ export default function LeadDetailPage({ params }: PageProps) {
         {lead.briefingToken && (
           <div className="mt-4 bg-[#0A0F1E] border border-[#1F2937] rounded-lg p-3 flex items-center gap-2">
             <span className="text-xs text-gray-400 flex-1 truncate">
-              Link do briefing: {window.location.origin}/b/{lead.briefingToken}
+              Link do briefing: {typeof window !== "undefined" ? window.location.origin : ""}/b/{lead.briefingToken}
             </span>
             <button
               onClick={copyBriefingLink}

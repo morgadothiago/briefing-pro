@@ -267,7 +267,7 @@ export default function LeadsPage() {
               {createdLead.briefingToken && (
                 <div className="bg-[#0A0F1E] border border-[#1F2937] rounded-xl p-3 flex items-center gap-2">
                   <span className="flex-1 text-xs text-gray-300 truncate">
-                    {window.location.origin}/b/{createdLead.briefingToken}
+                    {typeof window !== "undefined" ? window.location.origin : ""}/b/{createdLead.briefingToken}
                   </span>
                   <button
                     onClick={() =>
