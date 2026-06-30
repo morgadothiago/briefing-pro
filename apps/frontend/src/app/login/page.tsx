@@ -32,6 +32,7 @@ export default function LoginPage() {
       const res = await api.post<AuthResponse>("/api/auth/login", data);
       localStorage.setItem("bp_token", res.data.access_token);
       localStorage.setItem("bp_user", JSON.stringify(res.data.user));
+      document.cookie = `bp_token=${res.data.access_token}; path=/; max-age=86400; SameSite=Lax`;
       toast.success("Bem-vindo!");
       router.replace("/dashboard");
     } catch {

@@ -30,6 +30,7 @@ export function useAuth() {
   const logout = useCallback(() => {
     localStorage.removeItem("bp_token");
     localStorage.removeItem("bp_user");
+    document.cookie = "bp_token=; path=/; max-age=0";
     setToken(null);
     setUser(null);
     router.replace("/login");
