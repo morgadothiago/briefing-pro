@@ -55,6 +55,24 @@ export default function LeadDetailPage({ params }: PageProps) {
     enabled: !!lead,
   });
 
+  const NEXT_STATUS: Record<string, string> = {
+    LEAD: "CONTATO_FEITO",
+    CONTATO_FEITO: "FORMULARIO_ENVIADO",
+    FORMULARIO_ENVIADO: "FORMULARIO_PREENCHIDO",
+    FORMULARIO_PREENCHIDO: "PROPOSTA_ENVIADA",
+    PROPOSTA_ENVIADA: "PROPOSTA_ACEITA",
+    PROPOSTA_ACEITA: "FECHADO",
+  };
+
+  const advanceMutation = useMutation({
+    mutationFn: (status: string) =>
+      api.patch(`/api/leads/${id}/status`, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lead", id] });
+      toast.success("Fase avançada!");
+    },
+  });
+
   const addNoteMutation = useMutation({
     mutationFn: (content: string) =>
       api.post(`/api/leads/${id}/notes`, { content }),
@@ -130,10 +148,16 @@ export default function LeadDetailPage({ params }: PageProps) {
               <Download size={14} />
               Exportar PDF
             </button>
-            <button className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:from-blue-500 hover:to-blue-600 transition-all">
-              Avançar fase
-              <ArrowRight size={14} />
-            </button>
+            {lead.status !== "FECHADO" && NEXT_STATUS[lead.status] && (
+              <button
+                onClick={() => advanceMutation.mutate(NEXT_STATUS[lead.status])}
+                disabled={advanceMutation.isPending}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:from-blue-500 hover:to-blue-600 disabled:opacity-50 transition-all"
+              >
+                {advanceMutation.isPending ? "Salvando..." : "Avançar fase"}
+                <ArrowRight size={14} />
+              </button>
+            )}
           </div>
         </div>
 
