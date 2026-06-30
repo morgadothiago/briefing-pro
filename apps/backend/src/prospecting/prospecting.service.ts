@@ -91,13 +91,16 @@ export class ProspectingService {
         const url = new URL('https://www.googleapis.com/customsearch/v1')
         url.searchParams.set('key', apiKey)
         url.searchParams.set('cx', cx)
-        url.searchParams.set('q', `"${kw.keyword}"`)
-        url.searchParams.set('lr', 'lang_pt')
+        url.searchParams.set('q', kw.keyword)
         url.searchParams.set('num', '10')
-        url.searchParams.set('dateRestrict', 'd30')
 
         const res = await fetch(url.toString())
-        const data = await res.json() as { items?: Array<{ title: string; link: string; snippet: string }> }
+        const data = await res.json() as { items?: Array<{ title: string; link: string; snippet: string }>; error?: { message: string } }
+
+        if (data.error) {
+          console.error(`[Prospecting] Google API error for "${kw.keyword}":`, data.error.message)
+          continue
+        }
 
         for (const item of data.items ?? []) {
           if (seenUrls.has(item.link)) continue
