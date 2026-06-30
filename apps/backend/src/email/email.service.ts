@@ -34,7 +34,7 @@ export class EmailService {
     if (!lead.clientEmail) return
 
     const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000')
-    const link = `${frontendUrl}/briefing/${lead.briefingToken}`
+    const link = `${frontendUrl}/b/${lead.briefingToken}`
 
     const [user] = await this.db.select().from(users).where(eq(users.id, lead.userId))
     const adminName = user?.name ?? 'Nossa equipe'
