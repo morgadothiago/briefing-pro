@@ -31,6 +31,18 @@ const PLATFORM_MAP: Record<string, string> = {
   'mercadolivre.com': 'Mercado Livre',
 }
 
+// Domains that sell website builders or post tutorials — not leads
+const BLOCKED_DOMAINS = [
+  'wix.com', 'godaddy.com', 'hostinger.com', 'hostgator.com',
+  'squarespace.com', 'webflow.com', 'wordpress.com', 'blogger.com',
+  'youtube.com', 'google.com', 'adsense.google.com', 'support.google.com',
+  'techtudo.com.br', 'tecmundo.com.br', 'canaltech.com.br',
+  'meunegocio.com.br', 'sebrae.com.br', 'meio&mensagem.com.br',
+]
+
+// Negative terms appended to query to filter out tutorials
+const NEGATIVE_QUERY = '-tutorial -"como criar" -grátis -"passo a passo" -aprenda -curso'
+
 const HIGH_INTENT_WORDS = [
   'preciso', 'quero', 'busco', 'procuro', 'alguém', 'urgente',
   'orçamento', 'contratar', 'desenvolver', 'criar', 'fazer',
@@ -90,7 +102,7 @@ export class ProspectingService {
         const res = await fetch('https://google.serper.dev/search', {
           method: 'POST',
           headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ q: kw.keyword, gl: 'br', hl: 'pt', num: 10 }),
+          body: JSON.stringify({ q: `${kw.keyword} ${NEGATIVE_QUERY}`, gl: 'br', hl: 'pt', num: 10 }),
         })
         const data = await res.json() as {
           organic?: Array<{ title: string; link: string; snippet: string }>
@@ -107,6 +119,9 @@ export class ProspectingService {
         for (const item of items) {
           if (seenUrls.has(item.link)) continue
           seenUrls.add(item.link)
+
+          // Skip website builders, tutorial sites, and competitors
+          if (BLOCKED_DOMAINS.some(d => item.link.includes(d))) continue
 
           const platform = this.detectPlatform(item.link)
           const score = this.scoreResult(item.title, item.snippet, kw.keyword)

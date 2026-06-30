@@ -285,8 +285,11 @@ export default function BuscarLeadsPage() {
               <Tag size={16} className="text-[#3B82F6]" />
               Palavras-chave para busca
             </h2>
-            <p className="text-xs text-gray-500 mb-4">
-              O sistema busca no Google por pessoas que postaram usando essas expressões
+            <p className="text-xs text-gray-500 mb-1">
+              O sistema busca no Google por pessoas procurando contratar serviços digitais.
+            </p>
+            <p className="text-xs text-blue-400/70 mb-4">
+              💡 Use frases de intenção de compra: <span className="font-medium">&quot;procuro desenvolvedor web&quot;</span>, <span className="font-medium">&quot;quero contratar agência&quot;</span>, <span className="font-medium">&quot;preciso de sistema para empresa&quot;</span>
             </p>
 
             {/* Add form */}
@@ -300,7 +303,7 @@ export default function BuscarLeadsPage() {
               <input
                 value={newKeyword}
                 onChange={(e) => setNewKeyword(e.target.value)}
-                placeholder='Ex: "preciso criar um site", "quero um app"'
+                placeholder='Ex: "procuro desenvolvedor web", "quero contratar agência digital"'
                 className="flex-1 bg-[#0A0F1E] border border-[#1F2937] rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#3B82F6] transition-colors"
               />
               <button
