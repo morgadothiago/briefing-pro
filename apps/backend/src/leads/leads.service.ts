@@ -59,7 +59,7 @@ export class LeadsService {
     const lead = await this.leadsRepo.findById(id, userId)
     if (!lead) throw new NotFoundException('Lead não encontrado')
 
-    const fromStatus = lead.pipelineStatus
+    const fromStatus = lead.status
     await this.leadsRepo.updateStatus(id, dto.status)
 
     await this.leadsRepo.createEvent({
@@ -70,7 +70,7 @@ export class LeadsService {
       createdBy: 'admin',
     })
 
-    if (dto.status === 'CONTATO_FEITO' && lead.clientEmail) {
+    if (dto.status === 'CONTATO_FEITO' && lead.email) {
       const updatedLead = await this.leadsRepo.findByIdOnly(id)
       if (updatedLead) {
         this.emailService.sendWelcomeEmail(updatedLead).catch(console.error)
