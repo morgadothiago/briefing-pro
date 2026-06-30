@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Resend } from 'resend'
+import * as nodemailer from 'nodemailer'
 import { NeonHttpDatabase } from 'drizzle-orm/neon-http'
 import { eq } from 'drizzle-orm'
 import { DB } from '../database/database.module'
@@ -13,13 +13,21 @@ type Lead = typeof schema.leads.$inferSelect
 
 @Injectable()
 export class EmailService {
-  private resend: Resend
+  private transporter: nodemailer.Transporter
 
   constructor(
     private config: ConfigService,
     @Inject(DB) private db: NeonHttpDatabase<typeof schema>,
   ) {
-    this.resend = new Resend(config.get<string>('RESEND_API_KEY'))
+    this.transporter = nodemailer.createTransport({
+      host: config.get<string>('SMTP_HOST', 'smtp.gmail.com'),
+      port: config.get<number>('SMTP_PORT', 587),
+      secure: false,
+      auth: {
+        user: config.get<string>('SMTP_USER'),
+        pass: config.get<string>('SMTP_PASS'),
+      },
+    })
   }
 
   async sendWelcomeEmail(lead: Lead): Promise<void> {
@@ -59,7 +67,6 @@ export class EmailService {
     const [user] = await this.db.select().from(users).where(eq(users.id, lead.userId))
     const adminEmail = user?.email ?? this.config.get<string>('ADMIN_EMAIL', '')
 
-    // Email to admin
     if (adminEmail) {
       const { subject, html } = briefingReceivedTemplate({
         clientName: lead.clientName,
@@ -76,7 +83,6 @@ export class EmailService {
       })
     }
 
-    // Email to client
     if (lead.clientEmail) {
       const { subject, html } = briefingReceivedTemplate({
         clientName: lead.clientName,
@@ -113,8 +119,8 @@ export class EmailService {
       .returning()
 
     try {
-      const from = this.config.get<string>('EMAIL_FROM', 'BriefingPro <onboarding@resend.dev>')
-      const result = await this.resend.emails.send({
+      const from = this.config.get<string>('EMAIL_FROM', 'BriefingPro <noreply@briefingpro.com>')
+      const info = await this.transporter.sendMail({
         from,
         to: params.to,
         subject: params.subject,
@@ -124,7 +130,7 @@ export class EmailService {
       await this.db
         .update(emailsSent)
         .set({
-          resendId: result.data?.id ?? null,
+          resendId: info.messageId ?? null,
           status: 'sent',
           sentAt: new Date(),
         })
