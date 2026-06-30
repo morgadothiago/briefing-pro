@@ -11,7 +11,8 @@ export class LeadsService {
   ) {}
 
   async findAll(userId: string) {
-    return this.leadsRepo.findAll(userId)
+    const data = await this.leadsRepo.findAll(userId)
+    return { data, total: data.length }
   }
 
   async findById(id: string, userId: string) {
@@ -21,7 +22,7 @@ export class LeadsService {
   }
 
   async create(userId: string, dto: CreateLeadDto) {
-    return this.leadsRepo.create(userId, {
+    const lead = await this.leadsRepo.create(userId, {
       clientName: dto.clientName,
       clientEmail: dto.clientEmail,
       clientPhone: dto.clientPhone,
@@ -30,6 +31,10 @@ export class LeadsService {
       projectType: dto.projectType,
       estimatedValue: dto.estimatedValue?.toString(),
     })
+    if (lead && dto.clientEmail) {
+      this.emailService.sendWelcomeEmail(lead).catch(console.error)
+    }
+    return lead
   }
 
   async update(id: string, userId: string, dto: UpdateLeadDto) {
@@ -98,5 +103,25 @@ export class LeadsService {
     const emails = await this.leadsRepo.getEmails(leadId, userId)
     if (!emails) throw new NotFoundException('Lead não encontrado')
     return emails
+  }
+
+  async getBriefing(leadId: string, userId: string) {
+    const briefing = await this.leadsRepo.getBriefing(leadId, userId)
+    if (briefing === null && !(await this.leadsRepo.findById(leadId, userId))) {
+      throw new NotFoundException('Lead não encontrado')
+    }
+    return briefing
+  }
+
+  async getNotes(leadId: string, userId: string) {
+    const notes = await this.leadsRepo.getNotes(leadId, userId)
+    if (notes === null) throw new NotFoundException('Lead não encontrado')
+    return notes
+  }
+
+  async addNote(leadId: string, userId: string, content: string) {
+    const result = await this.leadsRepo.addNote(leadId, userId, content)
+    if (!result) throw new NotFoundException('Lead não encontrado')
+    return result
   }
 }

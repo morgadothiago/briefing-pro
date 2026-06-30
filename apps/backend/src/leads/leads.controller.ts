@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Put, Patch, Delete,
-  Body, Param, UseGuards, Request,
+  Body, Param, UseGuards, Request, HttpCode,
 } from '@nestjs/common'
 import { LeadsService } from './leads.service'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'
@@ -70,5 +70,25 @@ export class LeadsController {
   @Get(':id/emails')
   getEmails(@Param('id') id: string, @Request() req: AuthRequest) {
     return this.leadsService.getEmails(id, req.user.userId)
+  }
+
+  @Get(':id/briefing')
+  getBriefing(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.leadsService.getBriefing(id, req.user.userId)
+  }
+
+  @Get(':id/notes')
+  getNotes(@Param('id') id: string, @Request() req: AuthRequest) {
+    return this.leadsService.getNotes(id, req.user.userId)
+  }
+
+  @Post(':id/notes')
+  @HttpCode(200)
+  addNote(
+    @Param('id') id: string,
+    @Request() req: AuthRequest,
+    @Body() body: { content: string },
+  ) {
+    return this.leadsService.addNote(id, req.user.userId, body.content)
   }
 }

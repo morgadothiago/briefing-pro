@@ -26,7 +26,6 @@ export class LeadsRepository {
         const completedSteps: number[] = br
           ? ((br.completedSteps as number[]) ?? [])
           : []
-        const progress = Math.round((completedSteps.length / 12) * 100)
 
         const [lastEvent] = await this.db
           .select()
@@ -38,12 +37,16 @@ export class LeadsRepository {
         return {
           id: lead.id,
           clientName: lead.clientName,
-          clientEmail: lead.clientEmail,
           projectName: lead.projectName,
-          pipelineStatus: lead.pipelineStatus,
-          pipelineColumn: lead.pipelineColumn,
-          estimatedValue: lead.estimatedValue,
-          briefingProgress: progress,
+          email: lead.clientEmail,
+          phone: lead.clientPhone,
+          projectType: lead.projectType,
+          estimatedValue: lead.estimatedValue ? Number(lead.estimatedValue) : undefined,
+          status: lead.pipelineStatus,
+          kanbanColumn: lead.pipelineColumn ?? 0,
+          briefingProgress: completedSteps.length,
+          briefingToken: lead.briefingToken,
+          notes: lead.notes,
           createdAt: lead.createdAt,
           updatedAt: lead.updatedAt,
           lastActivity: lastEvent?.createdAt ?? lead.updatedAt,
@@ -73,7 +76,32 @@ export class LeadsRepository {
       .orderBy(desc(pipelineEvents.createdAt))
       .limit(20)
 
-    return { ...lead, briefingResponses: briefing ?? null, recentEvents: events }
+    const completedSteps: number[] = briefing
+      ? ((briefing.completedSteps as number[]) ?? [])
+      : []
+
+    return {
+      id: lead.id,
+      clientName: lead.clientName,
+      projectName: lead.projectName,
+      email: lead.clientEmail,
+      phone: lead.clientPhone,
+      projectType: lead.projectType,
+      clientCompany: lead.clientCompany,
+      estimatedValue: lead.estimatedValue ? Number(lead.estimatedValue) : undefined,
+      status: lead.pipelineStatus,
+      kanbanColumn: lead.pipelineColumn ?? 0,
+      briefingProgress: completedSteps.length,
+      briefingToken: lead.briefingToken,
+      notes: lead.notes,
+      meetingDate: lead.meetingDate,
+      meetingLink: lead.meetingLink,
+      meetingNotes: lead.meetingNotes,
+      createdAt: lead.createdAt,
+      updatedAt: lead.updatedAt,
+      briefingResponses: briefing ?? null,
+      recentEvents: events,
+    }
   }
 
   async findByIdOnly(id: string) {
@@ -163,5 +191,46 @@ export class LeadsRepository {
       .from(emailsSent)
       .where(eq(emailsSent.leadId, leadId))
       .orderBy(desc(emailsSent.sentAt))
+  }
+
+  async getBriefing(leadId: string, userId: string) {
+    const [lead] = await this.db
+      .select()
+      .from(leads)
+      .where(and(eq(leads.id, leadId), eq(leads.userId, userId)))
+    if (!lead) return null
+
+    const [briefing] = await this.db
+      .select()
+      .from(briefingResponses)
+      .where(eq(briefingResponses.leadId, leadId))
+
+    return briefing ?? null
+  }
+
+  async getNotes(leadId: string, userId: string) {
+    const [lead] = await this.db
+      .select({ notes: leads.notes, updatedAt: leads.updatedAt })
+      .from(leads)
+      .where(and(eq(leads.id, leadId), eq(leads.userId, userId)))
+    if (!lead) return null
+    if (!lead.notes) return []
+    return [{ id: leadId + '-note', leadId, content: lead.notes, createdAt: lead.updatedAt }]
+  }
+
+  async addNote(leadId: string, userId: string, content: string) {
+    const [lead] = await this.db
+      .select({ id: leads.id })
+      .from(leads)
+      .where(and(eq(leads.id, leadId), eq(leads.userId, userId)))
+    if (!lead) return null
+
+    const [updated] = await this.db
+      .update(leads)
+      .set({ notes: content, updatedAt: new Date() })
+      .where(and(eq(leads.id, leadId), eq(leads.userId, userId)))
+      .returning({ notes: leads.notes, updatedAt: leads.updatedAt })
+
+    return [{ id: leadId + '-note', leadId, content: updated.notes, createdAt: updated.updatedAt }]
   }
 }
