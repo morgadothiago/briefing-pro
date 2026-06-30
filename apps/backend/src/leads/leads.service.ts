@@ -110,7 +110,26 @@ export class LeadsService {
     if (briefing === null && !(await this.leadsRepo.findById(leadId, userId))) {
       throw new NotFoundException('Lead não encontrado')
     }
-    return briefing
+    if (!briefing) return null
+    return {
+      data: {
+        step1: briefing.step1 ?? undefined,
+        step2: briefing.step2 ?? undefined,
+        step3: briefing.step3 ?? undefined,
+        step4: briefing.step4 ?? undefined,
+        step5: briefing.step5 ?? undefined,
+        step6: briefing.step6 ?? undefined,
+        step7: briefing.step7 ?? undefined,
+        step8: briefing.step8 ?? undefined,
+        step9: briefing.step9 ?? undefined,
+        step10: briefing.step10 ?? undefined,
+        step11: briefing.step11 ?? undefined,
+        step12: briefing.step12 ?? undefined,
+      },
+      completedSteps: (briefing.completedSteps as number[]) ?? [],
+      currentStep: briefing.currentStep ?? 0,
+      submittedAt: briefing.submittedAt ?? null,
+    }
   }
 
   async getNotes(leadId: string, userId: string) {

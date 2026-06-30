@@ -252,16 +252,42 @@ export default function LeadDetailPage({ params }: PageProps) {
                 Briefing não preenchido ainda.
               </p>
             ) : (
-              Object.entries(briefingData).map(([key, val]) => (
-                <div key={key} className="border-b border-[#1F2937] pb-4 last:border-0">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
-                    {key.replace("step", "Etapa ")}
-                  </p>
-                  <pre className="text-sm text-gray-300 whitespace-pre-wrap font-sans">
-                    {JSON.stringify(val, null, 2)}
-                  </pre>
-                </div>
-              ))
+              (() => {
+                const STEP_LABELS: Record<string, string> = {
+                  step1: "Dados da Empresa",
+                  step2: "Objetivos do Projeto",
+                  step3: "Tipo de Projeto",
+                  step4: "Funcionalidades",
+                  step5: "Requisitos Funcionais",
+                  step6: "Requisitos Não Funcionais",
+                  step7: "Integrações",
+                  step8: "Referências Visuais",
+                  step9: "Cronograma",
+                  step10: "Orçamento",
+                  step11: "Observações Finais",
+                  step12: "Confirmação",
+                };
+                const entries = Object.entries(briefingData).filter(
+                  ([, val]) => val !== undefined && val !== null
+                );
+                if (entries.length === 0) {
+                  return (
+                    <p className="text-gray-400 text-sm">
+                      Briefing iniciado mas sem dados salvos ainda.
+                    </p>
+                  );
+                }
+                return entries.map(([key, val]) => (
+                  <div key={key} className="border-b border-[#1F2937] pb-4 last:border-0">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+                      {STEP_LABELS[key] ?? key.replace("step", "Etapa ")}
+                    </p>
+                    <pre className="text-sm text-gray-300 whitespace-pre-wrap font-sans">
+                      {JSON.stringify(val, null, 2)}
+                    </pre>
+                  </div>
+                ));
+              })()
             )}
           </div>
         </TabsContent>
