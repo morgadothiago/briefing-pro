@@ -148,7 +148,7 @@ export default function LeadDetailPage({ params }: PageProps) {
               <Download size={14} />
               Exportar PDF
             </button>
-            {lead.status !== "FECHADO" && NEXT_STATUS[lead.status] && (
+            {lead.status !== "PROJETO_INICIADO" && NEXT_STATUS[lead.status] && (
               <button
                 onClick={() => advanceMutation.mutate(NEXT_STATUS[lead.status])}
                 disabled={advanceMutation.isPending}
