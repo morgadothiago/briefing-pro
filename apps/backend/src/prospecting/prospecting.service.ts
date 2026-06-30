@@ -78,31 +78,33 @@ export class ProspectingService {
     const keywords = await this.getKeywords(userId)
     if (!keywords.length) return []
 
-    const apiKey = this.config.get<string>('GOOGLE_SEARCH_API_KEY')
-    const cx = this.config.get<string>('GOOGLE_SEARCH_ENGINE_ID')
+    const apiKey = this.config.get<string>('SERPER_API_KEY')
 
-    if (!apiKey || !cx) throw new Error('Google Search API não configurada')
+    if (!apiKey) throw new Error('Serper API não configurada')
 
     const allResults: SearchResult[] = []
     const seenUrls = new Set<string>()
 
     for (const kw of keywords) {
       try {
-        const url = new URL('https://www.googleapis.com/customsearch/v1')
-        url.searchParams.set('key', apiKey)
-        url.searchParams.set('cx', cx)
-        url.searchParams.set('q', kw.keyword)
-        url.searchParams.set('num', '10')
-
-        const res = await fetch(url.toString())
-        const data = await res.json() as { items?: Array<{ title: string; link: string; snippet: string }>; error?: { message: string } }
+        const res = await fetch('https://google.serper.dev/search', {
+          method: 'POST',
+          headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ q: kw.keyword, gl: 'br', hl: 'pt', num: 10 }),
+        })
+        const data = await res.json() as {
+          organic?: Array<{ title: string; link: string; snippet: string }>
+          error?: string
+        }
 
         if (data.error) {
-          console.error(`[Prospecting] Google API error for "${kw.keyword}":`, data.error.message)
+          console.error(`[Prospecting] Serper error for "${kw.keyword}":`, data.error)
           continue
         }
 
-        for (const item of data.items ?? []) {
+        const items = data.organic ?? []
+
+        for (const item of items) {
           if (seenUrls.has(item.link)) continue
           seenUrls.add(item.link)
 
