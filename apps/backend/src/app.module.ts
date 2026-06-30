@@ -8,6 +8,7 @@ import { FilesModule } from './files/files.module'
 import { EmailModule } from './email/email.module'
 import { PdfModule } from './pdf/pdf.module'
 import { MetricsModule } from './metrics/metrics.module'
+import { ProspectingModule } from './prospecting/prospecting.module'
 import { AppController } from './app.controller'
 
 @Module({
@@ -21,6 +22,7 @@ import { AppController } from './app.controller'
     EmailModule,
     PdfModule,
     MetricsModule,
+    ProspectingModule,
   ],
   controllers: [AppController],
 })

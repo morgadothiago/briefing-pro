@@ -92,6 +92,14 @@ export const emailsSent = pgTable('emails_sent', {
   sentAt: timestamp('sent_at'),
 })
 
+export const prospectingKeywords = pgTable('prospecting_keywords', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').references(() => users.id).notNull(),
+  keyword: text('keyword').notNull(),
+  active: boolean('active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+})
+
 export const uploadedFiles = pgTable('uploaded_files', {
   id: uuid('id').primaryKey().defaultRandom(),
   leadId: uuid('lead_id').references(() => leads.id).notNull(),
