@@ -31,17 +31,35 @@ const PLATFORM_MAP: Record<string, string> = {
   'mercadolivre.com': 'Mercado Livre',
 }
 
-// Domains that sell website builders or post tutorials — not leads
+// Service providers, freelancer marketplaces, tutorials — not leads
 const BLOCKED_DOMAINS = [
   'wix.com', 'godaddy.com', 'hostinger.com', 'hostgator.com',
   'squarespace.com', 'webflow.com', 'wordpress.com', 'blogger.com',
   'youtube.com', 'google.com', 'adsense.google.com', 'support.google.com',
   'techtudo.com.br', 'tecmundo.com.br', 'canaltech.com.br',
-  'meunegocio.com.br', 'sebrae.com.br', 'meio&mensagem.com.br',
+  'meunegocio.com.br', 'sebrae.com.br',
+  // Freelancer marketplaces (sellers, not buyers)
+  'freelancer.com', 'workana.com', '99freelas.com.br', 'upwork.com',
+  'getninjas.com.br', 'fiverr.com', 'toptal.com',
+  // Agency/portfolio sites patterns checked in code
 ]
 
-// Negative terms appended to query to filter out tutorials
-const NEGATIVE_QUERY = '-tutorial -"como criar" -grátis -"passo a passo" -aprenda -curso'
+// Community sites where buyers ask for referrals
+const COMMUNITY_SITES = [
+  'site:reddit.com',
+  'site:grupos.com.br',
+  'site:br.quora.com',
+  'site:forum.imasters.com.br',
+  'site:hardmob.com.br',
+]
+
+// Query template: wraps user keyword in buyer-intent framing
+function buildBuyerQuery(keyword: string): string {
+  // e.g. "site" → searches for people asking for recommendation/help building a site
+  const communityFilter = COMMUNITY_SITES.join(' OR ')
+  const negative = '-freelancer -agência -"contratar desenvolvedor" -portfólio -curriculum -"saiba mais" -"fale conosco"'
+  return `(${communityFilter}) ("${keyword}" OR "alguém indica" OR "preciso" OR "busco" OR "quero contratar") ${negative}`
+}
 
 const HIGH_INTENT_WORDS = [
   'preciso', 'quero', 'busco', 'procuro', 'alguém', 'urgente',
@@ -102,7 +120,7 @@ export class ProspectingService {
         const res = await fetch('https://google.serper.dev/search', {
           method: 'POST',
           headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ q: `${kw.keyword} ${NEGATIVE_QUERY}`, gl: 'br', hl: 'pt', num: 10 }),
+          body: JSON.stringify({ q: buildBuyerQuery(kw.keyword), gl: 'br', hl: 'pt', num: 10 }),
         })
         const data = await res.json() as {
           organic?: Array<{ title: string; link: string; snippet: string }>

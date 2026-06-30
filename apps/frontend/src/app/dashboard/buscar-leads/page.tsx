@@ -289,7 +289,7 @@ export default function BuscarLeadsPage() {
               O sistema busca no Google por pessoas procurando contratar serviços digitais.
             </p>
             <p className="text-xs text-blue-400/70 mb-4">
-              💡 Use frases de intenção de compra: <span className="font-medium">&quot;procuro desenvolvedor web&quot;</span>, <span className="font-medium">&quot;quero contratar agência&quot;</span>, <span className="font-medium">&quot;preciso de sistema para empresa&quot;</span>
+              💡 Use o <span className="font-medium">serviço ou nicho</span> que você oferece: <span className="font-medium">site</span>, <span className="font-medium">aplicativo</span>, <span className="font-medium">loja virtual</span>, <span className="font-medium">sistema para restaurante</span>. O sistema monta a busca por você em fóruns e comunidades.
             </p>
 
             {/* Add form */}
@@ -303,7 +303,7 @@ export default function BuscarLeadsPage() {
               <input
                 value={newKeyword}
                 onChange={(e) => setNewKeyword(e.target.value)}
-                placeholder='Ex: "procuro desenvolvedor web", "quero contratar agência digital"'
+                placeholder='Ex: site, loja virtual, aplicativo, sistema para clínica'
                 className="flex-1 bg-[#0A0F1E] border border-[#1F2937] rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 focus:outline-none focus:border-[#3B82F6] transition-colors"
               />
               <button
