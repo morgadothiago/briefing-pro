@@ -27,10 +27,7 @@ const schema = z.object({
   clientEmail: z.string().email("Email inválido").optional().or(z.literal("")),
   clientPhone: z.string().optional(),
   projectType: z.string().optional(),
-  estimatedValue: z.preprocess(
-    (v) => (v === "" || v === undefined || Number.isNaN(v) ? undefined : Number(v)),
-    z.number().min(0).optional()
-  ),
+  estimatedValue: z.number().min(0).optional(),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -372,7 +369,7 @@ export default function LeadsPage() {
                     Valor Estimado (R$)
                   </label>
                   <input
-                    {...register("estimatedValue")}
+                    {...register("estimatedValue", { valueAsNumber: true })}
                     type="number"
                     placeholder="0"
                     className={inputCls}
